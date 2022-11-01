@@ -15,11 +15,13 @@ export class EtapasClass {
 
   crearEtapa(req: any, resp: Response): void {
     const idCreador = new mongoose.Types.ObjectId(req.usuario._id);
+    const foranea = new mongoose.Types.ObjectId(req.body.foranea);
     const nombre = req.body.nombre;
     const estado: boolean = req.body.estado;
 
     const nuevaEtapa = new etapasModel({
       idCreador,
+      foranea,
       nombre,
       estado,
     });
@@ -42,8 +44,9 @@ export class EtapasClass {
   }
 
   obtenerEtapas(req: any, resp: Response): void {
+    const foranea = new mongoose.Types.ObjectId(req.get("foranea"));
     etapasModel
-      .find({})
+      .find({ foranea })
       .populate("idCreador")
       .exec((err: any, etapasDB: any) => {
         if (err) {
@@ -62,7 +65,8 @@ export class EtapasClass {
   }
 
   editarEtapa(req: any, resp: Response): any {
-    const id = new mongoose.Types.ObjectId(req.body.id);
+    const _id = new mongoose.Types.ObjectId(req.body.id);
+    const foranea = new mongoose.Types.ObjectId(req.body.foranea);
     const nombre: string = req.body.nombre;
     const estado: boolean = req.body.estado;
 
@@ -71,8 +75,8 @@ export class EtapasClass {
       estado,
     };
 
-    etapasModel.findById(
-      id,
+    etapasModel.findOne(
+      { _id, foranea },
       (err: CallbackError, etapaDB: EtapaModelInterface) => {
         if (err) {
           return resp.json({
@@ -93,8 +97,8 @@ export class EtapasClass {
           query.nombre = etapaDB.nombre;
         }
 
-        etapasModel.findByIdAndUpdate(
-          id,
+        etapasModel.findOneAndUpdate(
+          { _id, foranea },
           query,
           { new: true },
           (err: CallbackError, etapaDB: any) => {
@@ -118,48 +122,58 @@ export class EtapasClass {
   }
 
   eliminarEtapa(req: any, resp: Response): void {
-    const id = new mongoose.Types.ObjectId(req.get("id"));
+    const _id = new mongoose.Types.ObjectId(req.get("id"));
+    const foranea = new mongoose.Types.ObjectId(req.get("foranea"));
 
-    etapasModel.findByIdAndDelete(id, {}, (err: any, etapaDB: any) => {
-      if (err) {
-        return resp.json({
-          ok: false,
-          mensaje: `Error interno`,
-          err,
-        });
-      } else {
-        return resp.json({
-          ok: true,
-          mensaje: "Etapa eliminada",
-          etapaDB,
-        });
+    etapasModel.findOneAndDelete(
+      { _id, foranea },
+      {},
+      (err: any, etapaDB: any) => {
+        if (err) {
+          return resp.json({
+            ok: false,
+            mensaje: `Error interno`,
+            err,
+          });
+        } else {
+          return resp.json({
+            ok: true,
+            mensaje: "Etapa eliminada",
+            etapaDB,
+          });
+        }
       }
-    });
+    );
   }
 
   obtenerEtapasOrdenadas(req: any, resp: Response): void {
     const colEtapas: string = req.get("colEtapas");
+    const foranea = new mongoose.Types.ObjectId(req.get("foranea"));
 
-    etapasOrdendas.findOne({ colEtapas }, (err: any, etapasOrdenadaDB: any) => {
-      if (err) {
-        return resp.json({
-          ok: false,
-          err,
-        });
-      } else {
-        return resp.json({
-          ok: true,
-          etapasOrdenadaDB,
-        });
+    etapasOrdendas.findOne(
+      { colEtapas, foranea },
+      (err: any, etapasOrdenadaDB: any) => {
+        if (err) {
+          return resp.json({
+            ok: false,
+            err,
+          });
+        } else {
+          return resp.json({
+            ok: true,
+            etapasOrdenadaDB,
+          });
+        }
       }
-    });
+    );
   }
 
   actualizarEtapasOrdenadas(req: any, resp: Response): void {
     const colEtapas: string = req.body.colEtapas;
     const etapas = req.body.etapas;
+    const foranea = new mongoose.Types.ObjectId(req.get("foranea"));
     etapasOrdendas.findOneAndUpdate(
-      { colEtapas },
+      { colEtapas, foranea },
       { $set: { etapas } },
       { upsert: true, new: true },
       (err: any, etapasOrdenadaDB: any) => {

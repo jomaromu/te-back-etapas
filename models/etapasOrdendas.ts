@@ -8,7 +8,9 @@ const etapasOrdenadaSchema = new Schema({
   colEtapas: {
     type: String,
   },
+
   etapas: { type: Array },
+  foranea: { type: Schema.Types.ObjectId, ref: "userWorker" },
 });
 
 export = mongoose.model<EtapasOrdenadasInterface>(
